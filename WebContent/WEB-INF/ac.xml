@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd">
+
+	<!-- @Autowired -->
+	<!-- <context:annotation-config/> -->
+
+	<!-- @Valid와 같은 검증어노테이션이 JSR 303에 정의 hibernate-validator-4.3.1.Final.jar 
+		(JSR 303 프로바이더 ),validation-api.jar(JSR 303 api) ,jboss-logging.jar 설치 -->
+	<!-- <mvc:annotation-driven validator="validator" /> <bean id="validator" 
+		class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"></bean> -->
+	<!-- JSR 303프로바이더 사용 : LocalValidatorFactoryBean을 validator 등록해야함 annotation-driven 
+		태그가 LocalValidatorFactoryBean을 글로벌 validator 등록시킴 WebDataBinder, Conversion 
+		Service, HttpMessageConverter 빈등록 -->
+	<!-- RedirectAttributes, HandlerExceptionResolver 적용 -->
+	<mvc:annotation-driven />
+
+	<!-- for html, js -->
+	<!-- 스프링이 처리하지 못하는 resources/** 요청 톰캣에 위임 -->
+	<!-- <mvc:resources location="/resources/" mapping="/resources/**"/> -->
+	<!-- resources 폴더 아래 외에 다른 위치에 정적요소를 생성해 실행하게되면 오류가 발생하는데 그점을 막을 수 있다 -->
+	<!-- 스프링이 처리하지 못하는 모든 요청에 대해 톰캣에 위임 -->
+	<mvc:default-servlet-handler />
+
+	<!-- for java -->
+	<!-- 어노테이션이 붙은 클래스 빈 생성 -->
+	<!-- 어노테이션이 포함된 클래스를 처음부터 com.bug 아래에 각 패키지로 나누어 넣고 베이스패키지 선언을 간단히 하였다 -->
+	<!-- 추가되는 패키지가 있더라도 탐색이 필요한 경우는 com.bug 아래에 패키지로 추가하도록 한다 -->
+	<context:component-scan base-package="com" />
+
+	<!-- IRVR (View Resolver) -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/board/" /><!-- 뷰페이지 폴더 -->
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- 메세지 소스 빈 등록 -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<!-- message 폴더 아래 properties 파일 경로 -->
+			<list>
+				<!-- <value>message.error</value>message/error.properties -->
+				<value>message.label</value><!-- message/label.properties -->
+				<value>message.messages</value><!-- message/messages.properties -->
+			</list>
+		</property>
+		<!-- properties파일 한글 utf-8 인코딩 -->
+		<property name="defaultEncoding" value="utf-8" />
+	</bean>
+
+	<!-- http://commons.apache.org/proper/commons-fileupload/ -->
+	<!-- commons-fileupload api 사용 멀티파트 처리 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="-1" />
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+
+	<mvc:interceptors>
+		<!-- 조건:요청주소패턴 /item/a /item/a/b <mvc:mapping path="/**/*.do"/> -->
+		<mvc:interceptor>
+			<mvc:mapping path="/**/*.do" /><!-- .do로 끝나는 모든 요청명령 인터셉트 -->
+			<bean id="measuringInterceptor" class="interceptor.MeasuringInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<!-- AOP 프록시 설정 -->
+	<aop:aspectj-autoproxy/>
+	
+</beans>
